@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Urna Eletrônica</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*:before,*:after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:#cfd2d6;font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;color:#111}
+.urna{display:flex;gap:0;width:100%;max-width:980px;background:#d9d6cc;border:3px solid #a9a69b;border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.tela{flex:1 1 66%;background:#f2f2ee;border:6px solid #2b2b2b;border-radius:6px;min-height:430px;position:relative;padding:14px 20px;display:flex;flex-direction:column}
+.painel{flex:1 1 34%;margin-left:18px;background:#cfccc1;border-radius:8px;padding:12px;display:flex;flex-direction:column;align-items:center}
+.logo{font-weight:700;font-size:14px;letter-spacing:1px;text-align:center;margin-bottom:10px;color:#222}
+.logo small{display:block;font-weight:400;font-size:10px;letter-spacing:0}
+.teclas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:230px;background:#2b2b2b;padding:10px;border-radius:6px}
+.k{border:0;border-radius:5px;background:#3a3a3a;color:#fff;font-size:22px;font-weight:700;height:50px;cursor:pointer;box-shadow:0 3px 0 #111;position:relative}
+.k:active{transform:translateY(2px);box-shadow:0 1px 0 #111}
+.k:focus-visible{outline:3px solid #ffd54a}
+.k.z{grid-column:2}
+.acoes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:230px;margin-top:14px}
+.a{border:0;border-radius:5px;height:52px;font-weight:700;font-size:11px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.45);color:#111}
+.a:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+.a:focus-visible{outline:3px solid #1a56db}
+.branco{background:#fff}.corrige{background:#f26b1d}.confirma{background:#1fa347;color:#fff;height:62px;font-size:12px}
+.topo{font-size:13px;color:#333}
+.cargo{font-size:30px;font-weight:700;text-align:center;margin:10px 0 6px}
+.linha{display:flex;gap:14px;flex:1}
+.dados{flex:1}
+.lab{font-size:14px;margin:10px 0 4px;color:#222}
+.num{display:flex;gap:6px;align-items:center}
+.box{width:42px;height:50px;border:2px solid #222;font-size:32px;font-weight:700;display:flex;align-items:center;justify-content:center;background:#fff}
+.box.at{animation:pisca 1s steps(1) infinite}
+@keyframes pisca{50%{background:#e9e9e4}}
+@media (prefers-reduced-motion:reduce){.box.at{animation:none;background:#e9e9e4}}
+.val{font-size:20px;min-height:26px}
+.foto{width:120px;text-align:center;font-size:12px}
+.ft{width:120px;height:150px;background:#c9d3e6;border:2px solid #222;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:#fff}
+.rodape{border-top:2px solid #222;margin-top:auto;padding-top:8px;font-size:12px;line-height:1.5}
+.aviso{font-size:30px;font-weight:700;text-align:center;margin:14px 0;color:#111}
+.nulo{font-size:26px;font-weight:700;text-align:center;margin-top:30px}
+.fim{display:none;position:absolute;inset:0;background:#f2f2ee;align-items:center;justify-content:center;font-size:96px;font-weight:700;letter-spacing:8px}
+.fim.on{display:flex}
+.res{background:#fff;border:2px solid #222;border-radius:8px;padding:14px 18px;width:100%;max-width:980px;display:none}
+.res.on{display:block}
+.res table{border-collapse:collapse;width:100%;font-size:15px}
+.res td,.res th{padding:6px 8px;border-bottom:1px solid #ccc;text-align:left}
+.btn-res{background:#fff;border:1px solid #888;border-radius:6px;padding:8px 14px;font-size:14px;cursor:pointer}
+.btn-res:focus-visible{outline:3px solid #1a56db}
+@media (max-width:720px){
+ .urna{flex-direction:column;padding:10px}
+ .painel{margin:12px 0 0}
+ .tela{min-height:400px;padding:10px 12px}
+ .cargo{font-size:24px}
+ .box{width:34px;height:42px;font-size:26px}
+ .foto,.ft{width:92px}.ft{height:118px;font-size:36px}
+ .fim{font-size:64px}
+}
+</style>
+</head>
+<body>
+
+<div class="urna">
+  <div class="tela" id="tela">
+    <div class="topo" id="topo">SEU VOTO PARA</div>
+    <div class="cargo" id="cargo"></div>
+    <div class="linha" id="linha">
+      <div class="dados">
+        <div class="lab">Número:</div>
+        <div class="num" id="num"></div>
+        <div class="lab">Nome:</div><div class="val" id="nome"></div>
+        <div class="lab">Partido:</div><div class="val" id="partido"></div>
+      </div>
+      <div class="foto" id="foto" style="visibility:hidden"><div class="ft" id="ft"></div><div id="legenda"></div></div>
+    </div>
+    <div class="aviso" id="aviso"></div>
+    <div class="rodape" id="rodape">Aperte a tecla:<br>VERDE para CONFIRMAR este voto<br>LARANJA para REINICIAR este voto</div>
+    <div class="fim" id="fim">FIM</div>
+  </div>
+
+  <div class="painel">
+    <div class="logo">JUSTIÇA ELEITORAL<small>Urna escolar</small></div>
+    <div class="teclas" id="teclas"></div>
+    <div class="acoes">
+      <button class="a branco" id="bBranco">BRANCO</button>
+      <button class="a corrige" id="bCorrige">CORRIGE</button>
+      <button class="a confirma" id="bConfirma">CONFIRMA</button>
+    </div>
+  </div>
+</div>
+
+<button class="btn-res" id="bRes">Encerrar votação e ver resultado</button>
+<div class="res" id="res"></div>
+
+<script src="candidatos.js"></script>
+<script>
+
+var numero = "", modo = "digitando", bloqueado = false;
+var votos = {branco:0, nulo:0};
+Object.keys(CANDIDATOS).forEach(function(n){ votos[n] = 0; });
+var $ = function(id){ return document.getElementById(id); };
+
+// Som de bip (Web Audio)
+var ctx = null;
+function bip(freq, dur){
+  try{
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = freq; o.type = "square"; g.gain.value = 0.08;
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + dur);
+  }catch(e){}
+}
+
+function montarTeclado(){
+  var t = $("teclas");
+  [1,2,3,4,5,6,7,8,9,0].forEach(function(n){
+    var b = document.createElement("button");
+    b.className = "k" + (n === 0 ? " z" : "");
+    b.textContent = n;
+    b.setAttribute("aria-label", "Tecla " + n);
+    b.onclick = function(){ digitar(String(n)); };
+    t.appendChild(b);
+  });
+}
+
+function desenharCaixas(){
+  var h = "";
+  for(var i = 0; i < DIGITOS; i++){
+    var c = numero[i] || "";
+    var at = (i === numero.length && modo === "digitando") ? " at" : "";
+    h += '<div class="box' + at + '">' + c + '</div>';
+  }
+  $("num").innerHTML = h;
+}
+
+function render(){
+  $("cargo").textContent = CARGO;
+  desenharCaixas();
+  var c = CANDIDATOS[numero];
+  var completo = numero.length === DIGITOS;
+  $("nome").textContent = ""; $("partido").textContent = "";
+  $("foto").style.visibility = "hidden"; $("aviso").textContent = "";
+  $("linha").style.display = "flex";
+  $("rodape").style.display = completo || modo === "branco" ? "block" : "none";
+
+  if(modo === "branco"){
+    $("linha").style.display = "none";
+    $("aviso").textContent = "VOTO EM BRANCO";
+    return;
+  }
+  if(completo){
+    if(c){
+      $("nome").textContent = c.nome;
+      $("partido").textContent = c.partido;
+      $("foto").style.visibility = "visible";
+      $("ft").textContent = c.nome.charAt(0);
+      $("ft").style.background = c.cor;
+      $("legenda").textContent = CARGO;
+    }else{
+      $("aviso").innerHTML = "NÚMERO ERRADO<br>VOTO NULO";
+    }
+  }
+}
+
+function digitar(n){
+  if(bloqueado || modo === "branco" || numero.length >= DIGITOS) return;
+  numero += n; bip(900, 0.06); render();
+}
+function corrige(){
+  if(bloqueado) return;
+  numero = ""; modo = "digitando"; bip(600, 0.08); render();
+}
+function branco(){
+  if(bloqueado || numero.length > 0) return;
+  modo = "branco"; bip(900, 0.06); render();
+}
+function confirma(){
+  if(bloqueado) return;
+  var completo = numero.length === DIGITOS;
+  if(modo === "branco") votos.branco++;
+  else if(completo) { if(CANDIDATOS[numero]) votos[numero]++; else votos.nulo++; }
+  else return; // incompleto: ignora
+  bloqueado = true;
+  $("fim").classList.add("on");
+  bip(700, 0.9);
+  setTimeout(function(){
+    $("fim").classList.remove("on");
+    numero = ""; modo = "digitando"; bloqueado = false; render();
+  }, 1800);
+}
+
+function mostrarResultado(){
+  var s = prompt("Digite a senha para ver o resultado:");
+  if(s === null) return;
+  if(s !== SENHA){ alert("Senha incorreta."); return; }
+  var total = 0, linhas = "";
+  Object.keys(votos).forEach(function(k){ total += votos[k]; });
+  Object.keys(CANDIDATOS).forEach(function(n){
+    var c = CANDIDATOS[n];
+    linhas += "<tr><td>" + n + "</td><td>" + c.nome + " (" + c.partido + ")</td><td>" + votos[n] + "</td></tr>";
+  });
+  linhas += "<tr><td></td><td>Votos em branco</td><td>" + votos.branco + "</td></tr>";
+  linhas += "<tr><td></td><td>Votos nulos</td><td>" + votos.nulo + "</td></tr>";
+  linhas += "<tr><th></th><th>Total de votos</th><th>" + total + "</th></tr>";
+  var r = $("res");
+  r.innerHTML = "<h3 style='margin:0 0 8px'>Boletim de urna: " + CARGO + "</h3><table><tr><th>Nº</th><th>Candidato</th><th>Votos</th></tr>" + linhas + "</table>";
+  r.classList.add("on");
+}
+
+$("bBranco").onclick = branco;
+$("bCorrige").onclick = corrige;
+$("bConfirma").onclick = confirma;
+$("bRes").onclick = mostrarResultado;
+document.addEventListener("keydown", function(e){
+  if(e.target.tagName === "BUTTON" && (e.key === "Enter" || e.key === " ")) return;
+  if(/^[0-9]$/.test(e.key)) digitar(e.key);
+  else if(e.key === "Enter") confirma();
+  else if(e.key === "Backspace" || e.key === "Escape") corrige();
+});
+
+montarTeclado(); render();
+</script>
+</body>
+</html>
